@@ -17,4 +17,6 @@ app.MapGet("/foo", async (IHttpClientFactory httpClientFactory) =>
     return Results.Ok();
 });
 
+app.UseDeveloperExceptionPage();
+
 app.Run();

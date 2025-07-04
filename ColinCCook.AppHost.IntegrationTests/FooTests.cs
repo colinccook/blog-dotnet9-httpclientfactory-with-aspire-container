@@ -1,9 +1,9 @@
 namespace ColinCCook.AppHost.IntegrationTests;
 
-public class IntegrationTest1
+public class FooTests
 {
     [Test]
-    public async Task GetWebResourceRootReturnsOkStatusCode()
+    public async Task ReturnsSuccessfully_When_ServiceIsCallingThirdPartyContainerProperly()
     {
         // Arrange
         var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.ColinCCook_AppHost>();
