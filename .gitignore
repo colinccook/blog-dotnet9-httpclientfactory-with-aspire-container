@@ -1,0 +1,9 @@
+# Binaries
+[Bb]in/
+[Oo]bj/
+
+# Other dotnet files
+*.user
+*.suo
+*.sln.docstates
+.DS_Store
