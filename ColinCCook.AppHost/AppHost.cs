@@ -1,14 +1,14 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-var mockServerContainer = builder
-    .AddContainer("mockserver", "mockserver/mockserver")
-    .WithHttpEndpoint(port: 1080, targetPort: 1080, name: "mockserver");
+var service = builder
+    .AddContainer("servicename", "mockserver/mockserver")
+    .WithHttpEndpoint(port: 1080, targetPort: 1080, name: "endpointname");
 
-var mockServerContainerEndpoint = mockServerContainer
-    .GetEndpoint("mockserver");
+var endpoint = service
+    .GetEndpoint("endpointname");
 
 var web = builder
     .AddProject<Projects.ColinCCook_WebApi>("webapi")
-    .WithReference(mockServerContainerEndpoint);
+    .WithReference(endpoint);
 
 builder.Build().Run();
