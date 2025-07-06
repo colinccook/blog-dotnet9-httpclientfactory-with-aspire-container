@@ -16,6 +16,10 @@ public class FooTests
         await app.StartAsync();
 
         // Act
+        var httpClientMockServer = app.CreateHttpClient("servicename", "endpointname");
+        await resourceNotificationService.WaitForResourceAsync("servicename", KnownResourceStates.Running).WaitAsync(TimeSpan.FromSeconds(30));
+        var responseMockServer = await httpClientMockServer.GetAsync("/bar");
+
         var httpClient = app.CreateHttpClient("webapi");
         await resourceNotificationService.WaitForResourceAsync("webapi", KnownResourceStates.Running).WaitAsync(TimeSpan.FromSeconds(30));
         var response = await httpClient.GetAsync("/foo");
