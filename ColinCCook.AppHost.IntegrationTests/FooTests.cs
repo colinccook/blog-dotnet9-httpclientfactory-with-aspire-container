@@ -18,10 +18,10 @@ public class FooTests
         var resourceNotificationService = app.Services.GetRequiredService<ResourceNotificationService>();
         await app.StartAsync();
 
-        // Act
+        // MockService expectation
         var httpClientMockServer = app.CreateHttpClient("servicename", "endpointname");
         await resourceNotificationService.WaitForResourceAsync("servicename", KnownResourceStates.Running).WaitAsync(TimeSpan.FromSeconds(30));
-        
+
         var expectation = new
         {
             httpRequest = new
@@ -39,11 +39,28 @@ public class FooTests
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         await httpClientMockServer.PutAsync("/mockserver/expectation", content);
 
+        // Act
         var httpClient = app.CreateHttpClient("webapi");
         await resourceNotificationService.WaitForResourceAsync("webapi", KnownResourceStates.Running).WaitAsync(TimeSpan.FromSeconds(30));
         var response = await httpClient.GetAsync("/foo");
 
         // Assert
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        // Verify MockService expectation
+        var verification = new
+        {
+            httpRequest = new
+            {
+                method = "GET",
+                path = "/bar"
+            }
+        };
+        var verificationJson = JsonSerializer.Serialize(verification);
+        var verificationContent = new StringContent(verificationJson, Encoding.UTF8, "application/json");
+        var verificationResponse = await httpClientMockServer.PutAsync("/mockserver/verify", verificationContent);
+        Assert.That(verificationResponse.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
+
+        await httpClientMockServer.PutAsync("/mockserver/clear?type=EXPECTATIONS", null);
     }
 }
