@@ -4,7 +4,7 @@ builder.AddServiceDefaults();
 
 builder.Services.AddHttpClient("httpclientname", httpClient =>
 {
-    // ServiceDiscovery takes this URI and swaps it out
+    // ServiceDiscovery takes this URI format and creates the appropriate address
     httpClient.BaseAddress = new("http://_endpointname.servicename");
 });
 

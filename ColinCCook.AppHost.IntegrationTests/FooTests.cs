@@ -1,12 +1,15 @@
+using System.Net;
 using System.Text;
 using System.Text.Json;
+using NUnit.Framework;
 
 namespace ColinCCook.AppHost.IntegrationTests;
 
 public class FooTests
 {
-    [Test]
-    public async Task ReturnsSuccessfully_When_ServiceIsCallingThirdPartyContainerProperly()
+    [TestCase(200, HttpStatusCode.OK)]
+    [TestCase(404, HttpStatusCode.BadRequest)]
+    public async Task ThirdPartyApiCall_Should_ReturnCorrectStatusCode(int barStatusCode, HttpStatusCode fooStatusCode)
     {
         // Arrange
         var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.ColinCCook_AppHost>();
@@ -31,7 +34,7 @@ public class FooTests
             },
             httpResponse = new
             {
-                statusCode = 200
+                statusCode = barStatusCode
             }
         };
 
@@ -45,7 +48,7 @@ public class FooTests
         var response = await httpClient.GetAsync("/foo");
 
         // Assert
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        Assert.That(response.StatusCode, Is.EqualTo(fooStatusCode));
 
         // Verify MockService expectation
         var verification = new
