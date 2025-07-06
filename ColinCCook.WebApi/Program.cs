@@ -2,28 +2,24 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
+builder.Services.AddHttpClient("servicename", httpClient =>
+{
+    // ServiceDiscovery takes this URI and swaps it out
+    httpClient.BaseAddress = new("http://servicename");
+});
+
 var app = builder.Build();
 
 app.MapGet("/foo", async (IHttpClientFactory httpClientFactory) =>
 {
-    var httpClient = httpClientFactory.CreateClient("servicename");
-    var response = await httpClient.GetAsync("/bar");
+    var httpClientServiceName = httpClientFactory.CreateClient("servicename");
+    var responseServiceName = await httpClientServiceName.GetAsync("/bar");
 
-    if (!response.IsSuccessStatusCode)
+    if (!responseServiceName.IsSuccessStatusCode)
     {
         return Results.BadRequest();
     }
 
-    return Results.Ok();
-});
-
-app.MapGet("/environment-variables", (ILoggerFactory loggerFactory) =>
-{
-    var logger = loggerFactory.CreateLogger("EnvironmentVariablesLogger");
-    foreach (var env in Environment.GetEnvironmentVariables().Cast<System.Collections.DictionaryEntry>())
-    {
-        logger.LogInformation("{Key}={Value}", env.Key, env.Value);
-    }
     return Results.Ok();
 });
 
