@@ -1,3 +1,6 @@
+using System.Text;
+using System.Text.Json;
+
 namespace ColinCCook.AppHost.IntegrationTests;
 
 public class FooTests
@@ -18,7 +21,23 @@ public class FooTests
         // Act
         var httpClientMockServer = app.CreateHttpClient("servicename", "endpointname");
         await resourceNotificationService.WaitForResourceAsync("servicename", KnownResourceStates.Running).WaitAsync(TimeSpan.FromSeconds(30));
-        var responseMockServer = await httpClientMockServer.GetAsync("/bar");
+        
+        var expectation = new
+        {
+            httpRequest = new
+            {
+                method = "GET",
+                path = "/bar"
+            },
+            httpResponse = new
+            {
+                statusCode = 200
+            }
+        };
+
+        var json = JsonSerializer.Serialize(expectation);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        await httpClientMockServer.PutAsync("/mockserver/expectation", content);
 
         var httpClient = app.CreateHttpClient("webapi");
         await resourceNotificationService.WaitForResourceAsync("webapi", KnownResourceStates.Running).WaitAsync(TimeSpan.FromSeconds(30));
