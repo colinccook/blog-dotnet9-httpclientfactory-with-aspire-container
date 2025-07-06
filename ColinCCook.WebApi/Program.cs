@@ -2,17 +2,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-builder.Services.AddHttpClient("servicename", httpClient =>
+builder.Services.AddHttpClient("httpclientname", httpClient =>
 {
     // ServiceDiscovery takes this URI and swaps it out
-    httpClient.BaseAddress = new("http://servicename");
+    httpClient.BaseAddress = new("http://_endpointname.servicename");
 });
 
 var app = builder.Build();
 
 app.MapGet("/foo", async (IHttpClientFactory httpClientFactory) =>
 {
-    var httpClientServiceName = httpClientFactory.CreateClient("servicename");
+    var httpClientServiceName = httpClientFactory.CreateClient("httpclientname");
     var responseServiceName = await httpClientServiceName.GetAsync("/bar");
 
     if (!responseServiceName.IsSuccessStatusCode)
