@@ -28,7 +28,6 @@ app.MapGet("/foo", async (IHttpClientFactory httpClientFactory) =>
 
 app.UseDeveloperExceptionPage();
 
-app.UseSwagger();
-app.UseSwaggerUI();
+app.UseServiceDefaults();
 
 app.Run();

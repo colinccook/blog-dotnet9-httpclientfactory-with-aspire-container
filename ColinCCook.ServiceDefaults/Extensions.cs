@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ServiceDiscovery;
+using Microsoft.OpenApi.Models;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -30,6 +31,13 @@ public static class Extensions
 
             // Turn on service discovery by default
             http.AddServiceDiscovery();
+        });
+
+        // Add OpenAPI/Swagger services
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen(options =>
+        {
+            options.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
         });
 
         // Uncomment the following to restrict the allowed schemes for service discovery.
@@ -113,6 +121,13 @@ public static class Extensions
             });
         }
 
+        return app;
+    }
+
+    public static WebApplication UseServiceDefaults(this WebApplication app)
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
         return app;
     }
 }
