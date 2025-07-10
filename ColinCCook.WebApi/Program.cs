@@ -4,9 +4,12 @@ builder.AddServiceDefaults();
 
 builder.Services.AddHttpClient("httpclientname", httpClient =>
 {
-    // ServiceDiscovery takes this URI format and creates the appropriate address
+    // Service Discovery takes this URI format and creates the appropriate address
     httpClient.BaseAddress = new("http://_endpointname.servicename");
 });
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(); // add Swashbuckle.AspNetCore
 
 var app = builder.Build();
 
@@ -24,5 +27,8 @@ app.MapGet("/foo", async (IHttpClientFactory httpClientFactory) =>
 });
 
 app.UseDeveloperExceptionPage();
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.Run();
