@@ -32,10 +32,24 @@ The system under test is my `ColinCCook.WebApi` project. It exposes a single GET
 
 Whilst it's possible to call this by running the app, I've written an integration test in the `ColinCCook.AppHost.IntegrationTests` project that does the same thing for your convenience.
 
-### Step 2: The App Service calls the Bar service
+### Step 2: The Foo Service calls the Bar service
 
 The endpoint injects a IHttpClientFactory, and the code specifically asks for a named client called `httpclientname`. This is registered just above the endpoint code in the builder.
 
-The Bar service is a mock http service. I've used `mockserver` with an expectation to set up the HTTP contract. It will return either an `Accepted` or `NotAcceptable` response.
+It will call the Bar service's GET `/bar` endpoint.
+
+### Step 3: The Bar service responds
+
+The Bar service is a mock http service. I've used `mockserver` with an expectation to set up the HTTP contract.
+
+It will return either an `Accepted` or `NotAcceptable` response, depending on the expectations configured.
+
+By default, it will always return `Accepted`. The integration test that covers the negative path will override the positive expectation with a negative one.
+
+### Step 4: The Foo service service responds
+
+Depending on the Bar service's response, the Foo service will respond with an `Accepted` or `NotFound` response.
+
+Both of these scenarios are covered in the integration tests.
 
 
