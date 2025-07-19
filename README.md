@@ -1,17 +1,17 @@
-Problem:
+# Using HttpClientFactory to call a Docker container within Aspire
 
-The `/foo` endpoint is throwing because I'm attempting to perform a GET without a valid BaseUri.
+I spent a long while trying to understand why Csharp project was not hitting a Docker container properly via a `IHttpClientFactory`.
 
-The BaseUri should be present, as it's an environment variable called `services__servicename__endpointname__0` with a value of `http://localhost:1080`.
+As far as I could tell, everything was set up correctly; the connection between container and service was set up successfully in my `AppHost.cs` file. An environmet variable called  `services__servicename__endpointname__0` with a value of `http://localhost:1080` was being set in my app. My `IHttpClientFactory` was being created using a named service.
 
-The IHttpClientFactory is being passed `servicename`, but is failing to pick up the value.
+But the BaseUri was not being set properly.
 
-`AppHost.cs` is defining a Docker container and aliasing it as `servicename`. I have linked it to the WebApi with `.WithReference`.
+It turns out that, whilst I called, `builder.AddServiceDefaults();`, I still needed to add a named client specifically that mapped the servicename and endpoint name:
 
-From my understanding, Aspire's Service Discovery should be picking up the environment variable, and then the IHttpClientFactory should use it.
-
-I've created a single NUnit test that is currently failing.
-
-I have created an `/environment-variables` endpoint that confirms that the enviornment variable mentioned above is definitely present in runtime.
-
-(When I've figured it out, I'll actually set the expecation on mockserver to return a response when '/bar' is actually hit)
+```csharp
+builder.Services.AddHttpClient("httpclientname", httpClient =>
+{
+    // Service Discovery takes this URI format and creates the appropriate address
+    httpClient.BaseAddress = new("http://_endpointname.servicename");
+});
+```
