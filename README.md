@@ -1,55 +1,65 @@
 # Using HttpClientFactory to call a Docker container within Aspire
 
-I spent a long while trying to understand why Csharp project was not hitting a Docker container properly via a `IHttpClientFactory`.
+I spent a long while trying to understand why a C# project was not hitting a Docker container properly via `IHttpClientFactory` in a .NET Aspire solution.
 
-As far as I could tell, everything was set up correctly; the connection between container and service was set up successfully in my `AppHost.cs` file. An environmet variable called  `services__servicename__endpointname__0` with a value of `http://localhost:1080` was being set in my app. My `IHttpClientFactory` was being created using a named service.
+As far as I could tell, everything was set up correctly. The connection between the container and the service was configured in my `AppHost.cs` file, and an environment variable named `services__servicename__endpointname__0` with a value like `http://localhost:1080` was being correctly set in my application. My `IHttpClientFactory` was also being created using a named service.
 
-But the BaseUri was not being set properly.
+However, the `BaseAddress` on the `HttpClient` was not being resolved to the container's address.
 
-It turns out that, whilst I called, `builder.AddServiceDefaults();`, I still needed to add a named client specifically that mapped the servicename and endpoint name:
+It turns out that, while `builder.AddServiceDefaults()` is essential, I also needed to explicitly register a named `HttpClient` that uses Aspire's service discovery URI format. This allows Aspire to correctly map the service name to the container's endpoint at runtime.
 
 ```csharp
 builder.Services.AddHttpClient("httpclientname", httpClient =>
 {
-    // Service Discovery takes this URI format and creates the appropriate address
+    // Aspire's Service Discovery intercepts this special URI format 
+    // and replaces it with the correct address for the container.
     httpClient.BaseAddress = new("http://_endpointname.servicename");
 });
 ```
 
-## How this demo project works
+## How This Demo Project Works
 
-I created the demo project to test my learings.
+I created this demo project to solidify my learnings.
 
-Here is its basic architecture:
+### Prerequisites
+
+*   .NET 9 SDK (or newer)
+*   Docker Desktop
+
+### Getting Started
+
+You can run the entire solution, including the mock server in a container, by running the Aspire host project from your terminal:
+
+```bash
+dotnet run --project ColinCCook.AppHost/ColinCCook.AppHost.csproj
+```
+
+### Architecture
+
+Here is the basic architecture of the solution:
 
 <img width="2244" height="630" alt="image" src="https://github.com/user-attachments/assets/a64d25c9-2c43-4705-98b7-8c4be8c24b0e" />
 
-You can run this by running the Aspire host project under `ColinCCook.AppHost` project.
-
 ### Step 1: Consumer calls the FooService
 
-The system under test is my `ColinCCook.WebApi` project. It exposes a single GET `/foo` endpoint.
+The system under test is the `ColinCCook.WebApi` project. It exposes a single GET `/foo` endpoint.
 
-Whilst it's possible to call this by running the app, I've written an integration test in the `ColinCCook.AppHost.IntegrationTests` project that does the same thing for your convenience.
+While it's possible to call this endpoint directly after running the app, I've also written an integration test in the `ColinCCook.AppHost.IntegrationTests` project that does the same thing for your convenience.
 
 ### Step 2: The Foo Service calls the Bar service
 
-The endpoint injects a IHttpClientFactory, and the code specifically asks for a named client called `httpclientname`. This is registered just above the endpoint code in the builder.
+The `/foo` endpoint injects an `IHttpClientFactory` and requests a named client called `httpclientname`. This client is configured in `Program.cs` to use the special Aspire service discovery address.
 
-It will call the Bar service's GET `/bar` endpoint.
+It then calls the Bar service's GET `/bar` endpoint.
 
 ### Step 3: The Bar service responds
 
-The Bar service is a mock http service. I've used `mockserver` with an expectation to set up the HTTP contract.
+The "Bar service" is a mock HTTP service (`mockserver`) running in a Docker container. I've used an expectation to set up the required HTTP contract.
 
-It will return either an `Accepted` or `NotAcceptable` response, depending on the expectations configured.
+By default, it will always return an `Accepted` (202) response. The integration test that covers the negative path will override this expectation to return a different response.
 
-By default, it will always return `Accepted`. The integration test that covers the negative path will override the positive expectation with a negative one.
+### Step 4: The Foo service responds
 
-### Step 4: The Foo service service responds
-
-Depending on the Bar service's response, the Foo service will respond with an `Accepted` or `NotFound` response.
-
-Both of these scenarios are covered in the integration tests.
+Depending on the Bar service's response, the Foo service will respond with either an `Accepted` or `NotFound` response. Both of these scenarios are covered in the integration tests.
 
 
