@@ -8,7 +8,7 @@ namespace ColinCCook.AppHost.IntegrationTests;
 public class FooTests
 {
     [TestCase]
-    public async Task ReturnsAccepted_When_BarServiceCallIsSuccessful()
+    public async Task ReturnsAccepted_When_BarServiceIsCalledSuccessfully()
     {
         // Arrange
         var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.ColinCCook_AppHost>();
@@ -30,7 +30,7 @@ public class FooTests
     }
 
     [TestCase]
-    public async Task ReturnsNotFound_When_BarServiceCallIsNotSuccessful()
+    public async Task ReturnsNotFound_When_BarServiceIsCalledUnsuccefully()
     {
         // Arrange
         var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.ColinCCook_AppHost>();
@@ -42,7 +42,7 @@ public class FooTests
         var resourceNotificationService = app.Services.GetRequiredService<ResourceNotificationService>();
         await app.StartAsync();
 
-        // MockService expectation
+        // Arrange MockServer expecatations; clear any away and add a new one to return a 404
         var httpClientMockServer = app.CreateHttpClient("servicename", "endpointname");
         await resourceNotificationService.WaitForResourceAsync("servicename", KnownResourceStates.Running).WaitAsync(TimeSpan.FromSeconds(30));
 
@@ -55,13 +55,15 @@ public class FooTests
             },
             httpResponse = new
             {
-                statusCode = 404
+                statusCode = HttpStatusCode.NotAcceptable
             }
         };
 
         var json = JsonSerializer.Serialize(expectation);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
-        var result = await httpClientMockServer.PutAsync("/mockserver/expectation", content);
+        Assert.That((await httpClientMockServer.PutAsync("/mockserver/reset", null)).StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        Assert.That((await httpClientMockServer.PutAsync("/mockserver/expectation", content)).StatusCode, Is.EqualTo(HttpStatusCode.Created));
+        
 
         // Act
         var httpClient = app.CreateHttpClient("webapi");
