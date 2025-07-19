@@ -20,10 +20,10 @@ app.MapGet("/foo", async (IHttpClientFactory httpClientFactory) =>
 
     if (!responseServiceName.IsSuccessStatusCode)
     {
-        return Results.BadRequest();
+        return Results.NotFound();
     }
 
-    return Results.Ok();
+    return Results.Accepted();
 });
 
 app.UseDeveloperExceptionPage();
