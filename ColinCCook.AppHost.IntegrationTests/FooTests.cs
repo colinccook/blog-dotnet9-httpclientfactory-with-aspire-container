@@ -62,7 +62,6 @@ public class FooTests
         var json = JsonSerializer.Serialize(expectation);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         var result = await httpClientMockServer.PutAsync("/mockserver/expectation", content);
-        
 
         // Act
         var httpClient = app.CreateHttpClient("webapi");
