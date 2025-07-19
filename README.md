@@ -15,3 +15,11 @@ builder.Services.AddHttpClient("httpclientname", httpClient =>
     httpClient.BaseAddress = new("http://_endpointname.servicename");
 });
 ```
+
+## How this demo project works
+
+I created the demo project to test my learings.
+
+Here is its basic architecture:
+
+<img width="2244" height="630" alt="image" src="https://github.com/user-attachments/assets/a64d25c9-2c43-4705-98b7-8c4be8c24b0e" />
